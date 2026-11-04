@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>36인치 도가니 잔류 Melt & Crucible Lift 정밀 시뮬레이터</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Pretendard:wght@300;400;600;700;800&display=swap');
+    body {
+      font-family: 'Pretendard', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains+Mono', monospace;
+    }
+    /* Hide native number input spinner arrows so typing with keyboard is clean */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    /* Compact Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen overflow-hidden flex flex-col font-sans">
+
+  <!-- Top Header Navigation (Compact Single-line) -->
+  <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur shrink-0 px-4 py-2 flex items-center justify-between">
+    <div class="flex items-center space-x-2.5">
+      <div class="p-1.5 bg-gradient-to-tr from-orange-600 to-amber-500 rounded-lg text-white">
+        <i data-lucide="layers" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-sm lg:text-base tracking-tight text-white flex items-center gap-2">
+          CZ Quartz Crucible <span class="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full font-semibold">Lift & Melt</span>
+        </h1>
+      </div>
+    </div>
+    
+    <!-- Quick Specs Badge (Condensed) -->
+    <div class="flex items-center space-x-3 text-xs lg:text-sm font-mono bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60">
+      <div><span class="text-slate-400">규격:</span> <span class="text-orange-400 font-bold" id="badgePresetName">32"</span></div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div><span class="text-slate-400">OD:</span> <span class="text-amber-300 font-bold" id="badgeOD">810</span></div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div><span class="text-slate-400">ID:</span> <span class="text-amber-300 font-bold" id="badgeID">777</span></div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div><span class="text-slate-400">R1/R2:</span> <span class="text-cyan-300 font-bold" id="badgeCurv">813/160</span></div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div><span class="text-slate-400">R1높이:</span> <span class="text-amber-400 font-bold" id="badgeZt1">--</span></div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div><span class="text-slate-400">R2높이:</span> <span class="text-cyan-400 font-bold" id="badgeZt2">--</span></div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div><span class="text-slate-400">내측H:</span> <span class="text-emerald-400 font-bold" id="badgeDepth">--</span></div>
+    </div>
+  </header>
+
+  <!-- Main Container: Strict 100% Height, No Page Overflow -->
+  <main class="flex-1 min-h-0 p-2.5 grid grid-cols-12 gap-2.5 w-full mx-auto overflow-hidden">
+    
+    <!-- Left Column: Parameters & Control Inputs (4 Cols) -->
+    <section class="col-span-4 min-h-0 flex flex-col gap-2 overflow-y-auto pr-0.5">
+      
+      <!-- Crucible Presets & Primary Specs Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 shadow">
+        <!-- Preset Row -->
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs lg:text-sm font-bold text-orange-400 flex items-center gap-1.5">
+            <i data-lucide="disc" class="w-4 h-4"></i> 도가니 규격
+          </label>
+          <div class="grid grid-cols-5 gap-1.5">
+            <button type="button" class="btn-crucible-preset px-2 py-1 text-xs font-mono font-bold rounded border border-slate-700 bg-slate-800 text-slate-300 hover:border-orange-500" data-preset="28">28"</button>
+            <button type="button" class="btn-crucible-preset px-2 py-1 text-xs font-mono font-extrabold rounded border border-orange-500 bg-orange-500/25 text-orange-300 shadow-sm" data-preset="32">32"</button>
+            <button type="button" class="btn-crucible-preset px-2 py-1 text-xs font-mono font-bold rounded border border-slate-700 bg-slate-800 text-slate-300 hover:border-orange-500" data-preset="36">36"</button>
+            <button type="button" class="btn-crucible-preset px-2 py-1 text-xs font-mono font-bold rounded border border-slate-700 bg-slate-800 text-slate-300 hover:border-orange-500" data-preset="37.5">37.5"</button>
+            <button type="button" class="btn-crucible-preset px-2 py-1 text-xs font-mono font-bold rounded border border-slate-700 bg-slate-800 text-slate-300 hover:border-orange-500" data-preset="40">40"</button>
+          </div>
+        </div>
+
+        <!-- Charge & Ingot Inputs in 2 Columns -->
+        <div class="grid grid-cols-2 gap-2 text-xs lg:text-sm">
+          <!-- Charge -->
+          <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/50">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-semibold text-slate-300">차지량(kg)</span>
+              <span class="font-mono text-orange-400 font-bold text-sm" id="lblInitialCharge">450.0</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <input type="range" id="inputInitialCharge" min="100" max="1000" step="5" value="450" class="w-full h-1.5 bg-slate-700 rounded appearance-none cursor-pointer accent-orange-500">
+              <input type="number" id="inputInitialChargeNum" step="any" min="50" max="1200" value="450" class="w-16 px-1.5 py-0.5 bg-slate-900 border border-slate-700 rounded text-right font-mono text-white text-xs lg:text-sm font-bold focus:outline-none focus:border-orange-500">
+            </div>
+          </div>
+
+          <!-- Ingot Dia -->
+          <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/50">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-semibold text-slate-300">잉곳직경(mm)</span>
+              <span class="font-mono text-emerald-400 font-bold text-sm" id="lblIngotDia">360 mm</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <input type="number" id="inputIngotDia" step="any" min="50" max="800" value="360" class="w-full px-2 py-0.5 bg-slate-900 border border-slate-700 rounded text-right font-mono text-emerald-300 text-xs lg:text-sm font-bold focus:outline-none focus:border-emerald-500" placeholder="직경">
+              <span class="text-xs font-mono text-slate-400 font-bold">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- QZ Crucible Geometry Custom Inputs (Compact 6-grid) -->
+        <div class="mt-2 pt-2 border-t border-slate-800/80">
+          <div class="grid grid-cols-6 gap-1.5 text-xs font-mono">
+            <div>
+              <span class="text-slate-400 block text-[11px] mb-0.5">OD</span>
+              <input type="number" id="inputCrucibleOD" step="any" value="810.0" class="w-full px-1 py-1 bg-slate-800 border border-slate-700 rounded text-right text-amber-300 text-xs font-bold focus:outline-none">
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px] mb-0.5">ID</span>
+              <input type="number" id="inputCrucibleID" step="any" value="777.0" class="w-full px-1 py-1 bg-slate-800 border border-slate-700 rounded text-right text-amber-300 text-xs font-bold focus:outline-none">
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px] mb-0.5">R1</span>
+              <input type="number" id="inputCrucibleR1" step="any" value="813.0" class="w-full px-1 py-1 bg-slate-800 border border-slate-700 rounded text-right text-cyan-300 text-xs font-bold focus:outline-none">
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px] mb-0.5">R2</span>
+              <input type="number" id="inputCrucibleR2" step="any" value="160.0" class="w-full px-1 py-1 bg-slate-800 border border-slate-700 rounded text-right text-cyan-300 text-xs font-bold focus:outline-none">
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px] mb-0.5">H</span>
+              <input type="number" id="inputCrucibleH" step="any" value="500.0" class="w-full px-1 py-1 bg-slate-800 border border-slate-700 rounded text-right text-slate-200 text-xs font-bold focus:outline-none">
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[11px] mb-0.5">두께t</span>
+              <input type="number" id="inputCrucibleBotT" step="any" value="14.5" class="w-full px-1 py-1 bg-slate-800 border border-slate-700 rounded text-right text-slate-200 text-xs font-bold focus:outline-none">
+            </div>
+          </div>
+          <div id="geometryWarning" class="hidden mt-1.5 p-1.5 rounded bg-rose-950/40 border border-rose-800 text-xs text-rose-300"></div>
+        </div>
+      </div>
+
+      <!-- Crown, Tail, Remain & Target Length Card -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 shadow">
+        <!-- Target Offset & Target Ingot Specs (Repositioned immediately above Crown/Tail) -->
+        <div class="pb-2 mb-2 border-b border-slate-800/80 flex items-center justify-between text-xs lg:text-sm">
+          <div class="flex items-center gap-1.5">
+            <span class="text-cyan-300 font-bold text-xs lg:text-sm flex items-center gap-1">
+              <i data-lucide="target" class="w-3.5 h-3.5 text-cyan-400"></i> Target(Δ):
+            </span>
+            <input type="number" id="inputDiaOffset" step="any" min="0" max="30" value="5.0" class="w-14 px-1.5 py-0.5 bg-slate-950 border border-cyan-500/40 rounded text-right font-mono text-cyan-300 font-bold text-xs lg:text-sm focus:outline-none focus:border-cyan-400">
+            <div class="flex gap-1">
+              <button type="button" class="btn-offset-preset px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-xs font-mono font-bold" data-val="0">+0</button>
+              <button type="button" class="btn-offset-preset px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-mono font-bold" data-val="5">+5</button>
+              <button type="button" class="btn-offset-preset px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-xs font-mono font-bold" data-val="7">+7</button>
+            </div>
+          </div>
+          <div class="text-xs lg:text-sm font-mono text-slate-400">
+            Target직경: <strong id="dispEffDia" class="text-cyan-300 font-bold text-sm">365.0mm</strong>
+          </div>
+        </div>
+
+        <!-- Crown / Tail inline with editable Angle inputs -->
+        <div class="grid grid-cols-2 gap-2 text-xs lg:text-sm">
+          <!-- Crown -->
+          <div class="p-2 rounded-lg bg-slate-800/60 border border-slate-700/60 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-amber-300 font-bold text-xs lg:text-sm">Crown</span>
+                <input type="number" id="inputCrownAngle" step="any" min="10" max="85" value="38" class="w-12 px-1 py-0.5 bg-slate-950 border border-amber-500/40 rounded text-center text-amber-300 font-mono font-bold text-xs lg:text-sm focus:outline-none focus:border-amber-400">
+                <span class="text-amber-400 text-xs font-bold">°</span>
+              </div>
+              <span id="dispCrownLen" class="text-xs font-mono text-slate-400">142.6 mm</span>
+            </div>
+            <div class="flex items-center justify-end gap-1.5 font-mono">
+              <span class="text-xs text-slate-400">무게:</span>
+              <input type="number" id="inputCrownWeight" step="any" value="11.6" class="w-16 px-1.5 py-0.5 bg-slate-950 border border-slate-700 rounded text-right text-amber-300 font-bold text-xs lg:text-sm focus:outline-none focus:border-amber-500">
+              <span class="text-xs text-slate-400">kg</span>
+            </div>
+          </div>
+
+          <!-- Tail -->
+          <div class="p-2 rounded-lg bg-slate-800/60 border border-slate-700/60 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-rose-300 font-bold text-xs lg:text-sm">Tail</span>
+                <input type="number" id="inputTailAngle" step="any" min="10" max="85" value="67" class="w-12 px-1 py-0.5 bg-slate-950 border border-rose-500/40 rounded text-center text-rose-300 font-mono font-bold text-xs lg:text-sm focus:outline-none focus:border-rose-400">
+                <span class="text-rose-400 text-xs font-bold">°</span>
+              </div>
+              <span id="dispTailLen" class="text-xs font-mono text-slate-400">429.9 mm</span>
+            </div>
+            <div class="flex items-center justify-end gap-1.5 font-mono">
+              <span class="text-xs text-slate-400">무게:</span>
+              <input type="number" id="inputTailWeight" step="any" value="35.1" class="w-16 px-1.5 py-0.5 bg-slate-950 border border-slate-700 rounded text-right text-rose-300 font-bold text-xs lg:text-sm focus:outline-none focus:border-rose-500">
+              <span class="text-xs text-slate-400">kg</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden angle inputs removed / converted to visible inputs above -->
+        <input type="checkbox" id="chkAutoCones" checked class="hidden">
+        <input type="hidden" id="inputLiquidDensity" value="2.53">
+        <input type="hidden" id="inputSolidDensity" value="2.33">
+
+        <!-- Remain & Targets Row -->
+        <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs lg:text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-indigo-300 font-bold text-xs lg:text-sm shrink-0">Remain:</span>
+            <input type="number" id="inputRemainWeight" step="any" value="30.0" class="w-16 px-1.5 py-0.5 bg-slate-950 border border-indigo-500/40 rounded text-right font-mono text-indigo-300 font-bold text-xs lg:text-sm focus:outline-none">
+            <span class="text-xs font-mono text-slate-400">kg</span>
+          </div>
+
+          <div class="flex gap-1.5">
+            <button type="button" class="btn-remain-preset px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-xs font-mono font-bold" data-val="20">20k</button>
+            <button type="button" class="btn-remain-preset px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/50 text-xs font-mono font-bold" data-val="30">30k</button>
+            <button type="button" class="btn-remain-preset px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-xs font-mono font-bold" data-val="40">40k</button>
+          </div>
+        </div>
+
+        <!-- Calculated Target Summary (Growing Tail Trigger & Target Body Length) -->
+        <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-800/80 text-xs font-mono">
+          <div class="p-2 rounded-lg bg-rose-950/20 border border-rose-500/30">
+            <div class="text-[11px] lg:text-xs text-rose-300 font-semibold flex justify-between">
+              <span>Tail Trigger (Growing)</span>
+              <i data-lucide="flag" class="w-3.5 h-3.5 text-rose-400"></i>
+            </div>
+            <div class="flex items-baseline gap-1 mt-1">
+              <span id="dispTailTriggerWt" class="text-base lg:text-lg font-extrabold text-rose-400">384.9</span>
+              <span class="text-xs text-rose-300">kg 인출시</span>
+            </div>
+            <div class="text-[10px] lg:text-[11px] text-slate-400 mt-0.5">
+              (잔류: <span id="dispRemainAtTrigger" class="font-bold text-slate-300">65.1</span>kg)
+            </div>
+          </div>
+
+          <div class="p-2 rounded-lg bg-emerald-950/20 border border-emerald-500/30">
+            <div class="text-[11px] lg:text-xs text-emerald-300 font-semibold flex justify-between">
+              <span>Body Target Length</span>
+              <i data-lucide="target" class="w-3.5 h-3.5 text-emerald-400"></i>
+            </div>
+            <div class="flex items-baseline gap-1 mt-1">
+              <span id="dispBodyTargetLen" class="text-base lg:text-lg font-extrabold text-emerald-400">1,530</span>
+              <span class="text-xs text-emerald-300">mm</span>
+            </div>
+            <div class="text-[10px] lg:text-[11px] text-slate-400 mt-0.5">
+              목표중량: <span id="dispBodyTargetWt" class="text-emerald-300 font-bold">373.3</span> kg
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Simulator Controls & Metrics -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 shadow flex-1 flex flex-col justify-between">
+        <div>
+          <!-- Slider Mode Switch & Input -->
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center gap-2">
+              <span class="text-xs lg:text-sm font-bold text-slate-200">성장 Ingot 길이 제어</span>
+              <span class="text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-mono font-bold" id="dispGrowthStage">Body성장</span>
+            </div>
+            <span class="font-mono text-cyan-400 font-extrabold text-sm lg:text-base" id="lblCurrentIngotLen">1,000 mm</span>
+          </div>
+
+          <input type="range" id="sliderIngotLen" min="0" max="2500" step="5" value="1000" class="w-full h-2 bg-slate-700 rounded appearance-none cursor-pointer accent-cyan-500">
+          <div class="flex justify-between text-[11px] font-mono text-slate-400 mt-1">
+            <span>0 mm</span>
+            <span id="lblMaxIngotLen">Max: 1,530 mm</span>
+          </div>
+
+          <!-- Hidden melt slider for compat -->
+          <input type="range" id="sliderMeltWeight" min="0" max="500" step="1" value="150" class="hidden">
+          <span id="lblCurrentMeltKg" class="hidden"></span>
+          <span id="lblMaxMeltRange" class="hidden"></span>
+          <button id="tabIngotMode" class="hidden"></button>
+          <button id="tabMeltMode" class="hidden"></button>
+          <div id="modeIngotContainer" class="hidden"></div>
+          <div id="modeMeltContainer" class="hidden"></div>
+          <span id="resBodyLenSmall" class="hidden"></span>
+          <span id="sumCrownKg" class="hidden"></span>
+          <span id="sumBodyAvailKg" class="hidden"></span>
+          <span id="sumTailKg" class="hidden"></span>
+
+          <!-- Metrics 4-Grid (Larger fonts) -->
+          <div class="grid grid-cols-4 gap-2 mt-2.5 text-center font-mono">
+            <!-- Body Weight -->
+            <div class="p-2 rounded-lg bg-slate-800/80 border border-slate-700/60">
+              <span class="text-[11px] text-slate-400 font-semibold block">Body중량</span>
+              <span class="text-sm lg:text-base font-extrabold text-emerald-300" id="resBodyWeight">0.0</span>
+              <span class="text-[10px] text-slate-500 block">kg</span>
+            </div>
+
+            <!-- Total Grown Ingot -->
+            <div class="p-2 rounded-lg bg-emerald-950/30 border border-emerald-500/30">
+              <span class="text-[11px] text-emerald-300 font-semibold block">인출총량</span>
+              <span class="text-sm lg:text-base font-extrabold text-emerald-400" id="resTotalGrownWeight">0.0</span>
+              <span class="text-[10px] text-emerald-300 block font-bold" id="resGrownRatio">0%</span>
+            </div>
+
+            <!-- Residual Melt -->
+            <div class="p-2 rounded-lg bg-orange-950/30 border border-orange-500/30">
+              <span class="text-[11px] text-orange-300 font-semibold block">잔류Melt</span>
+              <span class="text-sm lg:text-base font-extrabold text-orange-400" id="resMeltWeight">0.0</span>
+              <span class="text-[10px] text-orange-300 block font-bold" id="resMeltPercent">0%</span>
+            </div>
+
+            <!-- Crucible Lift -->
+            <div class="p-2 rounded-lg bg-purple-950/30 border border-purple-500/40">
+              <span class="text-[11px] text-purple-300 font-semibold block">Lift (CL)</span>
+              <span class="text-sm lg:text-base font-extrabold text-purple-300" id="resCrucibleLift">0.0</span>
+              <span class="text-[10px] text-purple-400 block font-bold">mm</span>
+            </div>
+          </div>
+
+          <!-- Secondary Metrics Row -->
+          <div class="grid grid-cols-4 gap-2 mt-2 text-center font-mono text-xs">
+            <div class="bg-slate-800/50 p-1.5 rounded border border-slate-700/40">
+              <span class="text-slate-400 block text-[10px]">잔류반경</span>
+              <span class="text-cyan-300 font-bold text-xs lg:text-sm" id="resMeltRadius">388.5</span> <span class="text-[10px] text-slate-500">mm</span>
+            </div>
+            <div class="bg-slate-800/50 p-1.5 rounded border border-slate-700/40">
+              <span class="text-slate-400 block text-[10px]">잔류직경</span>
+              <span class="text-slate-200 font-bold text-xs lg:text-sm" id="resMeltDia">777.0</span> <span class="text-[10px] text-slate-500">mm</span>
+            </div>
+            <div class="bg-slate-800/50 p-1.5 rounded border border-slate-700/40">
+              <span class="text-slate-400 block text-[10px]">Melt높이</span>
+              <span class="text-amber-300 font-bold text-xs lg:text-sm" id="resMeltHeight">180.0</span> <span class="text-[10px] text-slate-500">mm</span>
+            </div>
+            <div class="bg-slate-800/50 p-1.5 rounded border border-slate-700/40">
+              <span class="text-slate-400 block text-[10px]">CL/SL 비</span>
+              <span class="text-cyan-400 font-extrabold text-xs lg:text-sm" id="resLiftRatio">0.220</span>
+            </div>
+          </div>
+          <span id="resMeltVol" class="hidden"></span>
+        </div>
+
+        <button id="btnResetDefault" class="mt-2 text-xs font-semibold text-slate-400 hover:text-orange-400 transition flex items-center justify-center gap-1.5 w-full py-1.5 bg-slate-800/60 rounded border border-slate-700/60">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 32" 기본값 초기화
+        </button>
+      </div>
+    </section>
+
+    <!-- Center Column: Visual Cross-Section Profile (4 Cols) -->
+    <section class="col-span-4 min-h-0 flex flex-col bg-slate-900/90 border border-slate-800 rounded-xl p-3 shadow">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2 shrink-0">
+        <div class="flex items-center space-x-2 text-white font-bold text-xs lg:text-sm">
+          <i data-lucide="crosshair" class="w-4 h-4 text-cyan-400"></i>
+          <span>도가니 단면 & Melt 동적 렌더링</span>
+        </div>
+        <!-- View Toggle -->
+        <div class="bg-slate-800/90 border border-slate-700/70 rounded p-0.5 flex items-center gap-1 text-xs font-mono">
+          <button type="button" id="btnViewProportional" class="px-2 py-0.5 rounded text-xs transition bg-orange-600 text-white font-bold">1:1실제</button>
+          <button type="button" id="btnViewFocused" class="px-2 py-0.5 rounded text-xs transition text-slate-400 hover:text-white">도가니확대</button>
+        </div>
+      </div>
+
+      <!-- Canvas Container (Responsive Flexible Height, Never Overflows) -->
+      <div class="relative w-full flex-1 min-h-0 bg-slate-950/80 rounded-lg border border-slate-800/90 overflow-hidden flex items-center justify-center">
+        <canvas id="crucibleCanvas" class="w-full h-full block"></canvas>
+
+        <!-- Floating Status Overlay -->
+        <div class="absolute top-2.5 left-2.5 bg-slate-900/90 backdrop-blur border border-slate-700/60 rounded-lg p-2 text-xs lg:text-sm font-mono space-y-1 z-20 shadow-md">
+          <div class="text-slate-300">Melt: <strong id="overlayMeltKg" class="text-orange-400 font-bold">-- kg</strong></div>
+          <div class="text-slate-400">R: <span id="overlayRadius" class="text-cyan-300 font-bold">-- mm</span></div>
+          <div class="text-slate-400">h: <span id="overlayDepth" class="text-amber-300 font-bold">-- mm</span></div>
+          <div class="text-slate-400">CL: <span id="overlayCL" class="text-purple-300 font-bold">+-- mm</span></div>
+        </div>
+
+        <div class="absolute bottom-2 right-2 text-[11px] text-slate-400 font-mono bg-slate-900/90 px-2 py-1 rounded border border-slate-800">
+          <span id="dispScaleRatio">1:1 비례</span>
+        </div>
+      </div>
+
+      <!-- Compact Zones Legend -->
+      <div class="grid grid-cols-3 gap-1.5 mt-2 pt-2 text-center text-xs border-t border-slate-800 shrink-0">
+        <div class="p-1.5 rounded bg-slate-800/40 border border-slate-700/40">
+          <span class="text-emerald-400 font-bold block text-xs">원통 직선부</span>
+          <span class="text-slate-400 text-[10px] lg:text-[11px] font-mono" id="legendCylZone">> 200mm</span>
+        </div>
+        <div class="p-1.5 rounded bg-slate-800/40 border border-slate-700/40">
+          <span class="text-cyan-400 font-bold block text-xs">R2 코너</span>
+          <span class="text-slate-400 text-[10px] lg:text-[11px] font-mono" id="legendR2Zone">50 ~ 200mm</span>
+        </div>
+        <div class="p-1.5 rounded bg-slate-800/40 border border-slate-700/40">
+          <span class="text-amber-400 font-bold block text-xs">R1 바닥</span>
+          <span class="text-slate-400 text-[10px] lg:text-[11px] font-mono" id="legendR1Zone">0 ~ 50mm</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Chart & Full Remaining Height Table (4 Cols) -->
+    <section class="col-span-4 min-h-0 flex flex-col gap-2">
+      
+      <!-- Lift Chart Card (Compact Height) -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 shadow shrink-0">
+        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 mb-1.5">
+          <div class="flex items-center space-x-1.5 text-white font-bold text-xs lg:text-sm">
+            <i data-lucide="trending-up" class="w-4 h-4 text-purple-400"></i>
+            <span>Crucible Lift 곡선</span>
+          </div>
+          <span class="text-xs text-purple-400 font-mono">CL(mm) vs Ingot(mm)</span>
+        </div>
+        <div class="h-28 w-full relative">
+          <canvas id="liftChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Growth Process Table Card (Takes All Remaining Height) -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 shadow flex-1 min-h-0 flex flex-col">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-1.5 shrink-0">
+          <div class="flex items-center space-x-1.5 text-white font-bold text-xs lg:text-sm">
+            <i data-lucide="table" class="w-4 h-4 text-emerald-400"></i>
+            <span>성장 단계별 Lift & 잔류반경</span>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <select id="selectStepInterval" class="bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-0.5 text-xs font-mono font-semibold focus:outline-none">
+              <option value="10" selected>10mm</option>
+              <option value="20">20mm</option>
+              <option value="50">50mm</option>
+              <option value="100">100mm</option>
+            </select>
+            <button id="btnExportCSV" class="flex items-center gap-1.5 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded text-xs transition font-semibold">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable Table Body: Occupies Full Vertical Remaining Area -->
+        <div class="flex-1 min-h-0 overflow-y-auto border border-slate-800 rounded">
+          <table class="w-full text-xs text-right font-mono border-collapse" id="growthTable">
+            <thead class="sticky top-0 bg-slate-800 text-slate-300 border-b border-slate-700 z-10 text-[11px] lg:text-xs">
+              <tr>
+                <th class="py-1.5 px-2 text-center">Body(mm)</th>
+                <th class="py-1.5 px-2 text-center text-cyan-300 bg-cyan-950/40 border-x border-cyan-800/60 font-extrabold">CL/SL비</th>
+                <th class="py-1.5 px-1.5 text-center">구간</th>
+                <th class="py-1.5 px-1.5 text-emerald-300">Body(kg)</th>
+                <th class="py-1.5 px-1.5 text-emerald-400 font-bold">인출량(kg)</th>
+                <th class="py-1.5 px-1.5 text-amber-300">Melt(kg)</th>
+                <th class="py-1.5 px-1.5 text-cyan-300">반경(mm)</th>
+                <th class="py-1.5 px-2 text-purple-300 font-bold">Lift(mm)</th>
+              </tr>
+            </thead>
+            <tbody id="growthTableBody" class="divide-y divide-slate-800/80 text-slate-300">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-1.5 text-[11px] text-slate-400 flex justify-between items-center shrink-0">
+          <span>* 행 클릭 시 해당 Ingot 길이로 이동</span>
+          <span id="lblTableTotalRows" class="font-mono font-semibold">-- steps</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Compact Technical Footer (Single Line, 24px) -->
+  <footer class="border-t border-slate-800 bg-slate-900/90 px-4 py-1.5 text-xs text-slate-400 flex justify-between items-center shrink-0 font-mono">
+    <div>
+      <span class="text-slate-300 font-bold">규격:</span>
+      <span id="footerCrucibleSummary" class="text-amber-400">32" (OD 810 / ID 777 / R1 813 / R2 160 / H 500 / t 14.5)</span>
+    </div>
+    <div class="text-slate-500 hidden sm:block">
+      dz_c = A_ingot / (A_crucible(z_m) - A_ingot) • dz_s (Pinning)
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    /**
+     * Standard Crucible Presets Table (Based on user specification)
+     * 인치: 28, 32, 36, 37.5, 40
+     */
+    const CRUCIBLE_PRESETS = {
+      '28': { od: 708, id: 682, R1: 708, R2: 140, height_out: 455, bottom_t: 13.0, corner_t: 20.0, defaultCharge: 280.0 },
+      '32': { od: 810, id: 777, R1: 813, R2: 160, height_out: 500, bottom_t: 14.5, corner_t: 22.0, defaultCharge: 380.0 },
+      '36': { od: 909, id: 879, R1: 914, R2: 180, height_out: 550, bottom_t: 17.0, corner_t: 26.0, defaultCharge: 500.0 },
+      '37.5': { od: 940, id: 904, R1: 940, R2: 160, height_out: 650, bottom_t: 17.0, corner_t: 26.0, defaultCharge: 580.0 },
+      '40': { od: 1016, id: 984, R1: 1016, R2: 140, height_out: 680, bottom_t: 17.0, corner_t: 28.0, defaultCharge: 700.0 }
+    };
+
+    let selectedPresetKey = '32'; // Default: 32 inches
+
+    let crucibleConfig = { ...CRUCIBLE_PRESETS['32'] };
+
+    // Derived geometry parameters
+    let derivedGeom = {
+      r_cyl: 388.5,
+      height_in: 485.5,
+      r_c2: 228.5,
+      z_c2: 200.0,
+      z_t1: 50.0,
+      z_t2: 200.0,
+      isValid: true,
+      errorMsg: '',
+    };
+
+    /**
+     * Recompute geometric transition boundaries whenever user edits OD, ID, R1, R2, etc.
+     */
+    function recomputeGeometry() {
+      const r_cyl = crucibleConfig.id / 2.0;
+      const height_in = Math.max(10, crucibleConfig.height_out - crucibleConfig.bottom_t);
+      const R1 = crucibleConfig.R1;
+      const R2 = crucibleConfig.R2;
+      const r_c2 = r_cyl - R2;
+
+      let isValid = true;
+      let errorMsg = '';
+
+      if (crucibleConfig.id >= crucibleConfig.od) {
+        isValid = false;
+        errorMsg = '내경(ID)은 외경(OD)보다 작아야 합니다.';
+      } else if (R2 >= r_cyl) {
+        isValid = false;
+        errorMsg = '코너 곡률(R2)은 내측 반지름(ID/2)보다 작아야 합니다.';
+      } else if (R1 <= R2) {
+        isValid = false;
+        errorMsg = '바닥 곡률(R1)은 코너 곡률(R2)보다 커야 합니다.';
+      } else {
+        const deltaR = R1 - R2;
+        const radicand = Math.pow(deltaR, 2) - Math.pow(r_c2, 2);
+        if (radicand <= 0) {
+          isValid = false;
+          errorMsg = '기하학적 접선 불가: (R1 - R2)가 (r_cyl - R2)보다 커야 접선 연결됩니다.';
+        } else {
+          const delta_z_c = Math.sqrt(radicand);
+          const z_c2 = R1 - delta_z_c;
+          const z_t1 = R1 - (R1 / (R1 - R2)) * delta_z_c;
+          const z_t2 = z_c2;
+
+          derivedGeom = {
+            r_cyl,
+            height_in,
+            r_c2,
+            z_c2,
+            z_t1,
+            z_t2,
+            isValid: true,
+            errorMsg: '',
+          };
+        }
+      }
+
+      if (!isValid) {
+        derivedGeom.isValid = false;
+        derivedGeom.errorMsg = errorMsg;
+      }
+
+      // Update Header Badges
+      const badgePreset = document.getElementById('badgePresetName');
+      if (badgePreset) badgePreset.textContent = `${selectedPresetKey}"`;
+      document.getElementById('badgeOD').textContent = `${crucibleConfig.od.toFixed(0)}`;
+      document.getElementById('badgeID').textContent = `${crucibleConfig.id.toFixed(0)}`;
+      document.getElementById('badgeCurv').textContent = `${crucibleConfig.R1}/${crucibleConfig.R2}`;
+      document.getElementById('badgeDepth').textContent = `${derivedGeom.height_in.toFixed(0)}`;
+      document.getElementById('badgeZt1').textContent = `${derivedGeom.z_t1.toFixed(0)}`;
+      document.getElementById('badgeZt2').textContent = `${derivedGeom.z_t2.toFixed(0)}`;
+
+      // Update Legends
+      const legendR1Zone = document.getElementById('legendR1Zone');
+      const legendR2Zone = document.getElementById('legendR2Zone');
+      const legendCylZone = document.getElementById('legendCylZone');
+
+      if (legendR1Zone) legendR1Zone.textContent = `0 ~ ${derivedGeom.z_t1.toFixed(0)}mm`;
+      if (legendR2Zone) legendR2Zone.textContent = `${derivedGeom.z_t1.toFixed(0)} ~ ${derivedGeom.z_t2.toFixed(0)}mm`;
+      if (legendCylZone) legendCylZone.textContent = `> ${derivedGeom.z_t2.toFixed(0)}mm`;
+
+      const warningEl = document.getElementById('geometryWarning');
+      if (warningEl) {
+        if (!isValid) {
+          warningEl.textContent = `치수 오류: ${errorMsg}`;
+          warningEl.classList.remove('hidden');
+        } else {
+          warningEl.classList.add('hidden');
+        }
+      }
+
+      const footerSummary = document.getElementById('footerCrucibleSummary');
+      if (footerSummary) {
+        footerSummary.textContent = `${selectedPresetKey}" (OD ${crucibleConfig.od} / ID ${crucibleConfig.id} / R1 ${crucibleConfig.R1} / R2 ${crucibleConfig.R2} / H ${crucibleConfig.height_out} / t ${crucibleConfig.bottom_t})`;
+      }
+
+      recomputeVolumeTable();
+    }
+
+    /**
+     * Get Inner Radius r(z) at inner height z (mm)
+     */
+    function getInnerRadius(z) {
+      if (z <= 0) return 0;
+      const { r_cyl, height_in, r_c2, z_c2, z_t1, z_t2, isValid } = derivedGeom;
+      if (!isValid) return r_cyl;
+      if (z >= height_in) return r_cyl;
+
+      const R1 = crucibleConfig.R1;
+      const R2 = crucibleConfig.R2;
+
+      if (z < z_t1) {
+        const val = 2 * R1 * z - z * z;
+        return val > 0 ? Math.sqrt(val) : 0;
+      } else if (z < z_t2) {
+        const dz = z - z_c2;
+        const val = Math.pow(R2, 2) - Math.pow(dz, 2);
+        return r_c2 + (val > 0 ? Math.sqrt(val) : 0);
+      } else {
+        return r_cyl;
+      }
+    }
+
+    /**
+     * Numerical Volume Table Precomputation
+     */
+    const DZ_STEP = 0.2; // 0.2 mm slices
+    let LOOKUP_STEPS = 3000;
+    let zArr = new Float64Array(1);
+    let vArr = new Float64Array(1);
+    let MAX_CAPACITY_LITERS = 0;
+
+    function recomputeVolumeTable() {
+      const maxZ = derivedGeom.height_in;
+      LOOKUP_STEPS = Math.ceil(maxZ / DZ_STEP);
+      zArr = new Float64Array(LOOKUP_STEPS + 1);
+      vArr = new Float64Array(LOOKUP_STEPS + 1);
+
+      let accumulatedVolume_mm3 = 0;
+      zArr[0] = 0;
+      vArr[0] = 0;
+
+      for (let i = 1; i <= LOOKUP_STEPS; i++) {
+        const zMid = (i - 0.5) * DZ_STEP;
+        const r = getInnerRadius(zMid);
+        const dV_mm3 = Math.PI * r * r * DZ_STEP;
+        accumulatedVolume_mm3 += dV_mm3;
+
+        zArr[i] = i * DZ_STEP;
+        vArr[i] = accumulatedVolume_mm3 / 1e6; // Liters
+      }
+      MAX_CAPACITY_LITERS = vArr[LOOKUP_STEPS];
+    }
+
+    /**
+     * Get Volume (Liters) for a given melt depth z (mm)
+     */
+    function getVolumeFromZ(z) {
+      if (z <= 0) return 0;
+      if (z >= derivedGeom.height_in) return MAX_CAPACITY_LITERS;
+
+      const idx = z / DZ_STEP;
+      const i0 = Math.floor(idx);
+      const frac = idx - i0;
+      if (i0 >= LOOKUP_STEPS) return MAX_CAPACITY_LITERS;
+      return vArr[i0] + frac * (vArr[i0 + 1] - vArr[i0]);
+    }
+
+    /**
+     * Inverse: Get Depth z (mm) for a given volume (Liters) using binary search
+     */
+    function getZFromVolume(targetVol_L) {
+      if (targetVol_L <= 0) return 0;
+      if (targetVol_L >= MAX_CAPACITY_LITERS) return derivedGeom.height_in;
+
+      let low = 0;
+      let high = LOOKUP_STEPS;
+      while (high - low > 1) {
+        const mid = (low + high) >> 1;
+        if (vArr[mid] >= targetVol_L) {
+          high = mid;
+        } else {
+          low = mid;
+        }
+      }
+      const frac = (targetVol_L - vArr[low]) / (vArr[high] - vArr[low]);
+      return zArr[low] + frac * (zArr[high] - zArr[low]);
+    }
+
+    // Main Simulation State (Namespace to avoid syntax duplicate identifier error)
+    window.appState = {
+      initialCharge: 450.0, // kg (32" Default)
+      ingotDia: 360.0, // mm
+      diaOffset: 5.0, // mm (+5 ~ +7 offset)
+      liquidDensity: 2.53, // g/cm3 = kg/L
+      solidDensity: 2.33, // g/cm3 = kg/L
+      currentIngotLen: 1000.0, // mm (Body Length)
+      currentMeltWeight: 150.0, // kg
+      remainWeight: 30.0, // kg (Tail 완료 후 최종 잔류 melt 목표량)
+      mode: 'ingot', // 'ingot' or 'melt'
+      stepInterval: 10, // mm
+      autoCones: true,
+      crownAngle: 38.0, // degrees
+      crownWeight: 11.6, // kg
+      crownLength: 142.6, // mm
+      tailAngle: 67.0, // degrees
+      tailWeight: 35.1, // kg
+      tailLength: 429.9, // mm
+      canvasViewMode: 'proportional', // 'proportional' or 'focused'
+    };
+    var appState = window.appState;
+
+    // DOM Elements for Geometry
+    const inputCrucibleOD = document.getElementById('inputCrucibleOD');
+    const inputCrucibleID = document.getElementById('inputCrucibleID');
+    const inputCrucibleR1 = document.getElementById('inputCrucibleR1');
+    const inputCrucibleR2 = document.getElementById('inputCrucibleR2');
+    const inputCrucibleH = document.getElementById('inputCrucibleH');
+    const inputCrucibleBotT = document.getElementById('inputCrucibleBotT');
+
+    // DOM Elements for Cones & Remain
+    const chkAutoCones = document.getElementById('chkAutoCones');
+    const inputDiaOffset = document.getElementById('inputDiaOffset');
+    const dispEffDia = document.getElementById('dispEffDia');
+    const inputCrownAngle = document.getElementById('inputCrownAngle');
+    const inputCrownWeight = document.getElementById('inputCrownWeight');
+    const dispCrownLen = document.getElementById('dispCrownLen');
+    const inputTailAngle = document.getElementById('inputTailAngle');
+    const inputTailWeight = document.getElementById('inputTailWeight');
+    const dispTailLen = document.getElementById('dispTailLen');
+    const sumCrownKg = document.getElementById('sumCrownKg');
+    const sumBodyAvailKg = document.getElementById('sumBodyAvailKg');
+    const sumTailKg = document.getElementById('sumTailKg');
+    const inputRemainWeight = document.getElementById('inputRemainWeight');
+    const dispTailTriggerWt = document.getElementById('dispTailTriggerWt');
+    const dispTailSub = document.getElementById('dispTailSub');
+    const dispRemainSub = document.getElementById('dispRemainSub');
+    const dispBodyTargetLen = document.getElementById('dispBodyTargetLen');
+    const dispBodyTargetWt = document.getElementById('dispBodyTargetWt');
+
+    // New DOM Elements for Ingot & Body Weights
+    const resBodyWeight = document.getElementById('resBodyWeight');
+    const resBodyLenSmall = document.getElementById('resBodyLenSmall');
+    const resTotalGrownWeight = document.getElementById('resTotalGrownWeight');
+    const resGrownRatio = document.getElementById('resGrownRatio');
+    const dispGrowthStage = document.getElementById('dispGrowthStage');
+
+    // DOM Elements
+    const inputInitialCharge = document.getElementById('inputInitialCharge');
+    const inputInitialChargeNum = document.getElementById('inputInitialChargeNum');
+    const lblInitialCharge = document.getElementById('lblInitialCharge');
+    const inputIngotDia = document.getElementById('inputIngotDia');
+    const lblIngotDia = document.getElementById('lblIngotDia');
+    const inputLiquidDensity = document.getElementById('inputLiquidDensity');
+    const inputSolidDensity = document.getElementById('inputSolidDensity');
+
+    const tabIngotMode = document.getElementById('tabIngotMode');
+    const tabMeltMode = document.getElementById('tabMeltMode');
+    const modeIngotContainer = document.getElementById('modeIngotContainer');
+    const modeMeltContainer = document.getElementById('modeMeltContainer');
+
+    const sliderIngotLen = document.getElementById('sliderIngotLen');
+    const lblCurrentIngotLen = document.getElementById('lblCurrentIngotLen');
+    const lblMaxIngotLen = document.getElementById('lblMaxIngotLen');
+
+    const sliderMeltWeight = document.getElementById('sliderMeltWeight');
+    const lblCurrentMeltKg = document.getElementById('lblCurrentMeltKg');
+    const lblMaxMeltRange = document.getElementById('lblMaxMeltRange');
+
+    const resMeltRadius = document.getElementById('resMeltRadius');
+    const resMeltDia = document.getElementById('resMeltDia');
+    const resMeltHeight = document.getElementById('resMeltHeight');
+    const resMeltVol = document.getElementById('resMeltVol');
+    const resCrucibleLift = document.getElementById('resCrucibleLift');
+    const resLiftRatio = document.getElementById('resLiftRatio');
+    const resMeltWeight = document.getElementById('resMeltWeight');
+    const resMeltPercent = document.getElementById('resMeltPercent');
+
+    const overlayMeltKg = document.getElementById('overlayMeltKg');
+    const overlayRadius = document.getElementById('overlayRadius');
+    const overlayDepth = document.getElementById('overlayDepth');
+    const overlayCL = document.getElementById('overlayCL');
+
+    const growthTableBody = document.getElementById('growthTableBody');
+    const selectStepInterval = document.getElementById('selectStepInterval');
+    const btnExportCSV = document.getElementById('btnExportCSV');
+    const btnResetDefault = document.getElementById('btnResetDefault');
+    const lblTableTotalRows = document.getElementById('lblTableTotalRows');
+
+    const canvas = document.getElementById('crucibleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Chart.js instance
+    let liftChart = null;
+
+    /**
+     * Compute Ingot properties: weight per mm of crystal (Body cylindrical section)
+     * Now linked to Target Offset: D_eff = dia_mm + offset_mm
+     */
+    function getIngotLinearDensity(dia_mm, offset_mm, solidDensity) {
+      const effDia = Math.max(10, (dia_mm || 10) + (offset_mm || 0));
+      const radius_cm = effDia / 20;
+      const area_cm2 = Math.PI * radius_cm * radius_cm;
+      const kg_per_mm = (area_cm2 * 0.1 * solidDensity) / 1000;
+      return Math.max(0.0001, kg_per_mm);
+    }
+
+    /**
+     * Compute Crown and Tail Cone Geometry using Excel formula:
+     *   TAN(RADIANS(angle))
+     *   Target Diameter D_eff = IngotDia + Offset (e.g. 305 + 5 = 310)
+     *   Height (mm) = (TAN(RADIANS(angle)) * D_eff) / 2
+     *   Weight (kg) = (PI() * (D_eff / 2)^2 * solidDensity * Height * (1/3)) / 1000000
+     */
+    function recomputeCones() {
+      const dia = appState.ingotDia;
+      const offset = appState.diaOffset;
+      const D_eff = dia + offset;
+      const R_eff = D_eff / 2.0;
+      const rhoS = appState.solidDensity;
+
+      if (dispEffDia) dispEffDia.textContent = `${D_eff.toFixed(1)} mm`;
+
+      if (appState.autoCones) {
+        // Crown (e.g. 38 deg)
+        const crownRad = (appState.crownAngle * Math.PI) / 180.0;
+        const tanCrown = Math.tan(crownRad);
+        const H_crown_mm = (tanCrown * D_eff) / 2.0;
+        const W_crown_kg = (Math.PI * Math.pow(R_eff, 2) * rhoS * H_crown_mm * (1.0 / 3.0)) / 1e6;
+
+        appState.crownLength = H_crown_mm;
+        appState.crownWeight = W_crown_kg;
+
+        // Tail (e.g. 67 deg)
+        const tailRad = (appState.tailAngle * Math.PI) / 180.0;
+        const tanTail = Math.tan(tailRad);
+        const H_tail_mm = (tanTail * D_eff) / 2.0;
+        const W_tail_kg = (Math.PI * Math.pow(R_eff, 2) * rhoS * H_tail_mm * (1.0 / 3.0)) / 1e6;
+
+        appState.tailLength = H_tail_mm;
+        appState.tailWeight = W_tail_kg;
+
+        if (inputCrownWeight && document.activeElement !== inputCrownWeight) inputCrownWeight.value = W_crown_kg.toFixed(1);
+        if (inputTailWeight && document.activeElement !== inputTailWeight) inputTailWeight.value = W_tail_kg.toFixed(1);
+      }
+
+      if (dispCrownLen) dispCrownLen.textContent = `${appState.crownLength.toFixed(1)} mm`;
+      if (dispTailLen) dispTailLen.textContent = `${appState.tailLength.toFixed(1)} mm`;
+      if (sumCrownKg) sumCrownKg.textContent = `${appState.crownWeight.toFixed(1)} kg`;
+      if (sumTailKg) sumTailKg.textContent = `${appState.tailWeight.toFixed(1)} kg`;
+
+      const availBodyKg = Math.max(0, appState.initialCharge - appState.crownWeight - appState.tailWeight - (appState.remainWeight || 0));
+      if (sumBodyAvailKg) sumBodyAvailKg.textContent = `${availBodyKg.toFixed(1)} kg`;
+    }
+
+    /**
+     * Calculate Crucible Lift & Growth State with Crown, Tail, Remain Mass Balance
+     */
+    function calculateState() {
+      const initCharge = appState.initialCharge;
+      const rhoL = appState.liquidDensity;
+      const rhoS = appState.solidDensity;
+      const ingotDia = appState.ingotDia;
+      const diaOffset = appState.diaOffset;
+      const effDia = ingotDia + diaOffset;
+      const crownWt = Math.min(initCharge, appState.crownWeight);
+      const tailWt = Math.min(initCharge - crownWt, appState.tailWeight);
+      const remainWt = Math.min(Math.max(0, initCharge - crownWt - tailWt), appState.remainWeight || 0);
+
+      // Target Body Weight & Length
+      const kgPerMm = getIngotLinearDensity(ingotDia, diaOffset, rhoS);
+      const targetBodyWeight = Math.max(0, initCharge - crownWt - tailWt - remainWt);
+      const targetBodyLength = Math.max(0, targetBodyWeight / kgPerMm);
+
+      // Tail Trigger Weight based on GROWING INGOT (Crown + Target Body)
+      const tailTriggerWtGrowing = crownWt + targetBodyWeight;
+      const remainAtTrigger = tailWt + remainWt;
+
+      // Initial Melt conditions
+      const initVol_L = initCharge / rhoL;
+      const z0 = getZFromVolume(initVol_L);
+
+      const maxIngotLength = Math.min(10000, targetBodyLength);
+
+      sliderIngotLen.max = Math.floor(maxIngotLength);
+      lblMaxIngotLen.textContent = `Max: ${Math.floor(targetBodyLength).toLocaleString()} mm`;
+
+      let meltWeight = 0;
+      let bodyLength = 0;
+      let bodyWeight = 0;
+
+      if (appState.mode === 'ingot') {
+        bodyLength = Math.min(appState.currentIngotLen, maxIngotLength);
+        bodyWeight = bodyLength * kgPerMm;
+        const totalPulled = crownWt + bodyWeight;
+        meltWeight = Math.max(0, initCharge - totalPulled);
+        appState.currentMeltWeight = meltWeight;
+      } else {
+        meltWeight = Math.min(appState.currentMeltWeight, initCharge);
+        const totalPulled = Math.max(0, initCharge - meltWeight);
+        bodyWeight = Math.max(0, totalPulled - crownWt);
+        bodyLength = Math.min(maxIngotLength, bodyWeight / kgPerMm);
+        appState.currentIngotLen = bodyLength;
+      }
+
+      const totalGrownWeight = crownWt + bodyWeight;
+      const meltVol_L = meltWeight / rhoL;
+      const z_current = getZFromVolume(meltVol_L);
+      const r_current = getInnerRadius(z_current);
+      const dia_current = r_current * 2;
+      const crucibleLift = Math.max(0, z0 - z_current);
+
+      const A_crucible = Math.PI * Math.pow(r_current, 2);
+      const A_ingot = Math.PI * Math.pow(effDia / 2, 2);
+      const liftRatio = A_crucible > 0 ? (A_ingot * rhoS) / (A_crucible * rhoL) : 0;
+      const meltPercent = (meltWeight / initCharge) * 100;
+
+      return {
+        initCharge,
+        z0,
+        meltWeight,
+        meltVol_L,
+        z_current,
+        r_current,
+        dia_current,
+        crucibleLift,
+        liftRatio,
+        meltPercent,
+        bodyLength,
+        bodyWeight,
+        totalGrownWeight,
+        crownWt,
+        tailWt,
+        remainWt,
+        tailTriggerWtGrowing,
+        remainAtTrigger,
+        targetBodyWeight,
+        targetBodyLength,
+        kgPerMm,
+        maxIngotLength,
+        effDia,
+      };
+    }
+
+    /**
+     * Update all DOM elements with computed state
+     */
+    function updateUI() {
+      recomputeCones();
+      const calc = calculateState();
+
+      // Sliders & Labels
+      lblInitialCharge.textContent = `${calc.initCharge.toFixed(1)}`;
+      inputInitialCharge.value = calc.initCharge;
+      if (document.activeElement !== inputInitialChargeNum) {
+        inputInitialChargeNum.value = calc.initCharge;
+      }
+
+      lblIngotDia.textContent = `${appState.ingotDia} mm`;
+      if (document.activeElement !== inputIngotDia) {
+        inputIngotDia.value = appState.ingotDia;
+      }
+
+      if (document.activeElement !== inputRemainWeight) {
+        inputRemainWeight.value = appState.remainWeight.toFixed(1);
+      }
+
+      // Display Target calculations
+      if (dispTailTriggerWt) dispTailTriggerWt.textContent = calc.tailTriggerWtGrowing.toFixed(1);
+      const dispRemainAtTrigger = document.getElementById('dispRemainAtTrigger');
+      if (dispRemainAtTrigger) dispRemainAtTrigger.textContent = calc.remainAtTrigger.toFixed(1);
+      if (dispBodyTargetLen) dispBodyTargetLen.textContent = Math.round(calc.targetBodyLength).toLocaleString();
+      if (dispBodyTargetWt) dispBodyTargetWt.textContent = calc.targetBodyWeight.toFixed(1);
+
+      lblCurrentIngotLen.textContent = `${Math.round(calc.bodyLength).toLocaleString()} mm`;
+      sliderIngotLen.value = Math.round(calc.bodyLength);
+
+      // Distinct Body & Total Grown Ingot Metrics
+      if (resBodyWeight) resBodyWeight.textContent = calc.bodyWeight.toFixed(1);
+      if (resTotalGrownWeight) resTotalGrownWeight.textContent = calc.totalGrownWeight.toFixed(1);
+      if (resGrownRatio) {
+        const ratio = (calc.totalGrownWeight / calc.initCharge) * 100;
+        resGrownRatio.textContent = `${ratio.toFixed(1)}%`;
+      }
+      if (dispGrowthStage) {
+        if (calc.bodyLength <= 0) {
+          dispGrowthStage.textContent = 'Crown';
+          dispGrowthStage.className = 'text-[9px] bg-amber-500/20 text-amber-300 px-1 py-0.2 rounded font-mono';
+        } else if (calc.totalGrownWeight >= calc.tailTriggerWtGrowing) {
+          dispGrowthStage.textContent = '🚨Tail도달';
+          dispGrowthStage.className = 'text-[9px] bg-rose-500/30 text-rose-300 font-bold px-1 py-0.2 rounded font-mono border border-rose-500/50 animate-pulse';
+        } else {
+          dispGrowthStage.textContent = 'Body성장';
+          dispGrowthStage.className = 'text-[9px] bg-emerald-500/20 text-emerald-300 px-1 py-0.2 rounded font-mono';
+        }
+      }
+
+      // Metric Cards
+      resMeltRadius.textContent = calc.r_current.toFixed(1);
+      resMeltDia.textContent = calc.dia_current.toFixed(1);
+      resMeltHeight.textContent = calc.z_current.toFixed(1);
+      if (resMeltVol) resMeltVol.textContent = calc.meltVol_L.toFixed(1);
+
+      resCrucibleLift.textContent = calc.crucibleLift.toFixed(1);
+      resLiftRatio.textContent = calc.liftRatio.toFixed(3);
+
+      resMeltWeight.textContent = calc.meltWeight.toFixed(1);
+      resMeltPercent.textContent = `${calc.meltPercent.toFixed(1)}%`;
+
+      // Overlay text
+      overlayMeltKg.textContent = `${calc.meltWeight.toFixed(1)} kg`;
+      overlayRadius.textContent = `${calc.r_current.toFixed(1)} mm`;
+      overlayDepth.textContent = `${calc.z_current.toFixed(1)} mm`;
+      overlayCL.textContent = `+${calc.crucibleLift.toFixed(1)} mm`;
+
+      // Redraw Canvas & Table & Chart
+      drawCrucible(calc);
+      populateGrowthTable(calc);
+      updateChart(calc);
+    }
+
+    /**
+     * Initialize & Update Chart.js Lift Curve
+     */
+    function updateChart(calc) {
+      const step = 20; // Sampling step (mm)
+      const maxL = Math.min(6000, calc.maxIngotLength);
+      const labels = [];
+      const liftData = [];
+      const radiusData = [];
+
+      const initCharge = calc.initCharge;
+      const rhoL = appState.liquidDensity;
+      const kgPerMm = calc.kgPerMm;
+      const crownWt = calc.crownWt;
+      const z0 = calc.z0;
+
+      for (let l = 0; l <= maxL; l += step) {
+        labels.push(l);
+        const cumWeight = crownWt + l * kgPerMm;
+        const meltWt = Math.max(0, initCharge - cumWeight);
+        const z = getZFromVolume(meltWt / rhoL);
+        const cl = Math.max(0, z0 - z);
+        const r = getInnerRadius(z);
+        liftData.push(parseFloat(cl.toFixed(1)));
+        radiusData.push(parseFloat(r.toFixed(1)));
+      }
+
+      const chartCanvas = document.getElementById('liftChart');
+      if (!chartCanvas) return;
+
+      if (!liftChart) {
+        const chartCtx = chartCanvas.getContext('2d');
+        liftChart = new Chart(chartCtx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Lift CL (mm)',
+                data: liftData,
+                borderColor: '#c084fc',
+                backgroundColor: 'rgba(192, 132, 252, 0.15)',
+                borderWidth: 2,
+                tension: 0.2,
+                pointRadius: 0,
+                yAxisID: 'yCL',
+                fill: true,
+              },
+              {
+                label: '잔류 반경 (mm)',
+                data: radiusData,
+                borderColor: '#38bdf8',
+                borderWidth: 1.5,
+                borderDash: [3, 3],
+                pointRadius: 0,
+                yAxisID: 'yRadius',
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  boxWidth: 10,
+                  font: { size: 9, family: 'Pretendard' },
+                  color: '#94a3b8'
+                }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#334155',
+                borderWidth: 1,
+                titleFont: { family: 'JetBrains Mono', size: 10 },
+                bodyFont: { family: 'JetBrains Mono', size: 10 },
+                callbacks: {
+                  title: (items) => `Body Length: ${items[0].label} mm`,
+                  label: (ctx) => `${ctx.dataset.label}: ${ctx.raw} mm`
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: 'rgba(51, 65, 85, 0.25)' },
+                ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 8 }, maxTicksLimit: 6 },
+                title: { display: false }
+              },
+              yCL: {
+                type: 'linear',
+                position: 'left',
+                grid: { color: 'rgba(51, 65, 85, 0.25)' },
+                ticks: { color: '#c084fc', font: { family: 'JetBrains Mono', size: 8 } },
+                title: { display: false }
+              },
+              yRadius: {
+                type: 'linear',
+                position: 'right',
+                grid: { display: false },
+                ticks: { color: '#38bdf8', font: { family: 'JetBrains Mono', size: 8 } },
+                title: { display: false }
+              }
+            }
+          }
+        });
+      } else {
+        liftChart.data.labels = labels;
+        liftChart.data.datasets[0].data = liftData;
+        liftChart.data.datasets[1].data = radiusData;
+        liftChart.update();
+      }
+    }
+
+    /**
+     * Draw arrow helper
+     */
+    function drawArrow(ctx, fromx, fromy, tox, toy, headlen, color) {
+      const angle = Math.atan2(toy - fromy, tox - fromx);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(tox, toy);
+      ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    /**
+     * Draw Crucible Cross-Section and Liquid Silicon Level
+     */
+    function drawCrucible(calc) {
+      if (!canvas || !canvas.parentElement) return;
+      const w = Math.max(50, canvas.parentElement.clientWidth);
+      const h = Math.max(50, canvas.parentElement.clientHeight);
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+
+      ctx.clearRect(0, 0, w, h);
+
+      const paddingX = 35;
+      const paddingY = 30;
+      const maxDrawW = Math.max(50, w - paddingX * 2);
+      const maxDrawH = Math.max(50, h - paddingY * 2);
+
+      const isProportional = appState.canvasViewMode === 'proportional';
+      const effIngotLen = calc.bodyLength;
+      const crownLen = appState.crownLength || 100;
+      const totalVisualH = isProportional 
+        ? Math.max(crucibleConfig.height_out + 60, crucibleConfig.height_out + effIngotLen * 0.45 + crownLen * 0.45 + 50)
+        : crucibleConfig.height_out + 80;
+
+      const scaleX = maxDrawW / Math.max(100, crucibleConfig.od + 60);
+      const scaleY = maxDrawH / Math.max(100, totalVisualH);
+      const scale = Math.max(0.01, Math.min(scaleX, scaleY));
+
+      const centerX = w / 2;
+      const liftOffset = calc.crucibleLift * scale;
+      const baseY = h - paddingY - 10 - liftOffset;
+      const innerBaseY = baseY - crucibleConfig.bottom_t * scale;
+
+      function mmToCanvas(r, z) {
+        return {
+          x: centerX + r * scale,
+          y: innerBaseY - z * scale,
+        };
+      }
+
+      // Draw Center Axis
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.moveTo(centerX, 10);
+      ctx.lineTo(centerX, baseY + 15);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const outerR_cyl = crucibleConfig.od / 2;
+      const outerHeight = crucibleConfig.height_out;
+      const outerR2 = crucibleConfig.R2 + (crucibleConfig.corner_t || 22.0);
+      const safeArcR = Math.max(0.1, outerR2 * scale);
+      const r_cyl = derivedGeom.r_cyl;
+
+      // Draw Crucible Wall Glass Body (Quartz)
+      ctx.beginPath();
+      ctx.moveTo(centerX + outerR_cyl * scale, baseY - outerHeight * scale);
+      ctx.lineTo(centerX + outerR_cyl * scale, baseY - safeArcR);
+      ctx.arcTo(centerX + outerR_cyl * scale, baseY, centerX, baseY, safeArcR);
+      ctx.lineTo(centerX, baseY);
+      ctx.arcTo(centerX - outerR_cyl * scale, baseY, centerX - outerR_cyl * scale, baseY - safeArcR, safeArcR);
+      ctx.lineTo(centerX - outerR_cyl * scale, baseY - outerHeight * scale);
+      ctx.lineTo(centerX - r_cyl * scale, baseY - outerHeight * scale);
+
+      // Inner profile down (left side)
+      const sampleSteps = 50;
+      for (let i = sampleSteps; i >= 0; i--) {
+        const z = (i / sampleSteps) * derivedGeom.height_in;
+        const r = getInnerRadius(z);
+        const p = mmToCanvas(-r, z);
+        ctx.lineTo(p.x, p.y);
+      }
+      // Inner profile up (right side)
+      for (let i = 0; i <= sampleSteps; i++) {
+        const z = (i / sampleSteps) * derivedGeom.height_in;
+        const r = getInnerRadius(z);
+        const p = mmToCanvas(r, z);
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.lineTo(centerX + outerR_cyl * scale, baseY - outerHeight * scale);
+      ctx.closePath();
+
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.1)';
+      ctx.fill();
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Draw Molten Silicon
+      const meltZ = Math.min(calc.z_current, derivedGeom.height_in);
+      if (meltZ > 0.5) {
+        ctx.beginPath();
+        const meltLeft = mmToCanvas(-calc.r_current, meltZ);
+        const meltRight = mmToCanvas(calc.r_current, meltZ);
+
+        ctx.moveTo(meltLeft.x, meltLeft.y);
+        ctx.lineTo(meltRight.x, meltRight.y);
+
+        const meltSteps = 40;
+        for (let i = meltSteps; i >= 0; i--) {
+          const z = (i / meltSteps) * meltZ;
+          const r = getInnerRadius(z);
+          const p = mmToCanvas(r, z);
+          ctx.lineTo(p.x, p.y);
+        }
+        for (let i = 0; i <= meltSteps; i++) {
+          const z = (i / meltSteps) * meltZ;
+          const r = getInnerRadius(z);
+          const p = mmToCanvas(-r, z);
+          ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+
+        const meltGrad = ctx.createLinearGradient(centerX, meltLeft.y, centerX, innerBaseY);
+        meltGrad.addColorStop(0, '#f97316');
+        meltGrad.addColorStop(0.5, '#ea580c');
+        meltGrad.addColorStop(1, '#9a3412');
+        ctx.fillStyle = meltGrad;
+        ctx.fill();
+
+        // Top surface glow
+        ctx.beginPath();
+        ctx.moveTo(meltLeft.x, meltLeft.y);
+        ctx.lineTo(meltRight.x, meltRight.y);
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw Ingot Crystal Interface (Body & Crown)
+        const ingotR = (calc.effDia / 2) * scale;
+        const crystalGrad = ctx.createLinearGradient(centerX - ingotR, 0, centerX + ingotR, 0);
+        crystalGrad.addColorStop(0, '#64748b');
+        crystalGrad.addColorStop(0.5, '#f1f5f9');
+        crystalGrad.addColorStop(1, '#475569');
+
+        const drawnBodyLen = isProportional 
+          ? Math.min(meltLeft.y - 25, effIngotLen * 0.45 * scale)
+          : Math.min(80, Math.max(25, effIngotLen * 0.1 * scale));
+        const bodyTopY = meltLeft.y - drawnBodyLen;
+
+        // Ingot Body cylinder
+        ctx.fillStyle = crystalGrad;
+        ctx.fillRect(centerX - ingotR, bodyTopY, ingotR * 2, drawnBodyLen);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(centerX - ingotR, bodyTopY, ingotR * 2, drawnBodyLen);
+
+        // Crown Cone at top
+        const drawnCrownH = Math.min(30, (crownLen * 0.3) * scale);
+        ctx.beginPath();
+        ctx.moveTo(centerX - ingotR, bodyTopY);
+        ctx.lineTo(centerX + ingotR, bodyTopY);
+        ctx.lineTo(centerX, bodyTopY - drawnCrownH);
+        ctx.closePath();
+        ctx.fillStyle = '#94a3b8';
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.stroke();
+
+        // Ingot Diameter Label
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.fillStyle = '#38bdf8';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Ø${calc.effDia.toFixed(1)}`, centerX, bodyTopY + drawnBodyLen / 2 + 4);
+
+        // Radius Dimension Line
+        const dimY = meltLeft.y - 8;
+        ctx.beginPath();
+        ctx.moveTo(centerX, dimY);
+        ctx.lineTo(meltRight.x, dimY);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        drawArrow(ctx, centerX, dimY, meltRight.x, dimY, 4, '#38bdf8');
+
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.fillStyle = '#38bdf8';
+        ctx.textAlign = 'center';
+        ctx.fillText(`R = ${calc.r_current.toFixed(1)} mm`, centerX + (calc.r_current * scale) / 2, dimY - 3);
+      }
+
+      // Height dimension line on right side
+      const pTop = mmToCanvas(r_cyl, derivedGeom.height_in);
+      const pBot = mmToCanvas(r_cyl, 0);
+      const dimX = centerX + outerR_cyl * scale + 15;
+
+      ctx.beginPath();
+      ctx.moveTo(dimX, pTop.y);
+      ctx.lineTo(dimX, pBot.y);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(dimX + 12, (pTop.y + pBot.y) / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'center';
+      ctx.fillText(`H = ${derivedGeom.height_in.toFixed(0)}mm`, 0, 0);
+      ctx.restore();
+
+      // Lift (CL) dimension line on left side
+      if (calc.crucibleLift > 1) {
+        const dimXL = centerX - outerR_cyl * scale - 15;
+        const initialBaseY = baseY + liftOffset;
+
+        ctx.beginPath();
+        ctx.moveTo(dimXL, initialBaseY);
+        ctx.lineTo(dimXL, baseY);
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(dimXL - 10, (initialBaseY + baseY) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.fillStyle = '#c084fc';
+        ctx.textAlign = 'center';
+        ctx.fillText(`+CL ${calc.crucibleLift.toFixed(0)}mm`, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    /**
+     * Populate Growth Step Table with Section Zone (R1, R2, Cylinder)
+     */
+    function populateGrowthTable(calc) {
+      const step = Math.max(5, parseInt(selectStepInterval.value, 10) || 10);
+      const maxL = Math.min(6000, calc.maxIngotLength);
+      const rows = [];
+      const initCharge = calc.initCharge;
+      const rhoL = appState.liquidDensity;
+      const rhoS = appState.solidDensity;
+      const kgPerMm = calc.kgPerMm;
+      const crownWt = calc.crownWt;
+      const effDia = calc.effDia;
+      const z0 = calc.z0;
+      const { z_t1, z_t2 } = derivedGeom;
+
+      let currentL = 0;
+      const MAX_ROWS = 1000;
+      while (currentL <= maxL + 1 && rows.length < MAX_ROWS) {
+        const pullLen = Math.min(currentL, maxL);
+        const bodyWeight = pullLen * kgPerMm;
+        const totalGrown = crownWt + bodyWeight;
+        const meltWt = Math.max(0, initCharge - totalGrown);
+        const volL = meltWt / rhoL;
+        const z = getZFromVolume(volL);
+        const radius = getInnerRadius(z);
+        const cl = Math.max(0, z0 - z);
+
+        const A_crucible = Math.PI * Math.pow(radius, 2);
+        const A_ingot = Math.PI * Math.pow(effDia / 2, 2);
+        const ratio = A_crucible > 0 ? (A_ingot * rhoS) / (A_crucible * rhoL) : 0;
+
+        let zoneBadge = '';
+        if (z < z_t1) {
+          zoneBadge = '<span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-bold">R1바닥</span>';
+        } else if (z < z_t2) {
+          zoneBadge = '<span class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-bold">R2코너</span>';
+        } else {
+          zoneBadge = '<span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold">원통</span>';
+        }
+
+        rows.push({
+          len: Math.round(pullLen),
+          ratio: ratio.toFixed(3),
+          zoneBadge,
+          bodyWeight: bodyWeight.toFixed(1),
+          totalGrown: totalGrown.toFixed(1),
+          meltWt: meltWt.toFixed(1),
+          radius: radius.toFixed(1),
+          cl: cl.toFixed(1),
+        });
+
+        if (currentL >= maxL) break;
+        currentL += step;
+        if (currentL > maxL && currentL - step < maxL) {
+          currentL = maxL;
+        }
+      }
+
+      // Render rows with comfortable sizing and padding
+      growthTableBody.innerHTML = '';
+      rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        const isCurrent = Math.abs(row.len - Math.round(calc.bodyLength)) < step / 2;
+        tr.className = `cursor-pointer transition hover:bg-slate-800 ${isCurrent ? 'bg-orange-500/20 font-bold text-white' : ''}`;
+        tr.innerHTML = `
+          <td class="py-2 px-2.5 text-center text-slate-200 text-xs lg:text-sm font-semibold">${row.len.toLocaleString()}</td>
+          <td class="py-2 px-2.5 text-center font-extrabold text-cyan-300 bg-cyan-950/30 border-x border-cyan-800/40 text-xs lg:text-sm">${row.ratio}</td>
+          <td class="py-2 px-2 text-center">${row.zoneBadge}</td>
+          <td class="py-2 px-2 text-emerald-300 font-semibold text-xs lg:text-sm">${row.bodyWeight}</td>
+          <td class="py-2 px-2 text-emerald-400 font-bold text-xs lg:text-sm">${row.totalGrown}</td>
+          <td class="py-2 px-2 ${parseFloat(row.meltWt) < 50 ? 'text-rose-400 font-bold' : 'text-amber-300 font-semibold'} text-xs lg:text-sm">${row.meltWt}</td>
+          <td class="py-2 px-2 text-cyan-400 font-semibold text-xs lg:text-sm">${row.radius}</td>
+          <td class="py-2 px-2.5 text-purple-300 font-extrabold text-xs lg:text-sm">${row.cl}</td>
+        `;
+
+        tr.addEventListener('click', () => {
+          appState.mode = 'ingot';
+          appState.currentIngotLen = row.len;
+          updateUI();
+        });
+
+        growthTableBody.appendChild(tr);
+      });
+
+      lblTableTotalRows.textContent = `${rows.length} steps`;
+    }
+
+    /**
+     * CSV Export Feature with Zone included
+     */
+    function exportToCSV() {
+      const calc = calculateState();
+      const step = parseInt(selectStepInterval.value, 10);
+      const maxL = calc.maxIngotLength;
+      const initCharge = calc.initCharge;
+      const rhoL = appState.liquidDensity;
+      const rhoS = appState.solidDensity;
+      const kgPerMm = calc.kgPerMm;
+      const crownWt = calc.crownWt;
+      const tailWt = calc.tailWt;
+      const effDia = calc.effDia;
+      const z0 = calc.z0;
+      const { z_t1, z_t2 } = derivedGeom;
+
+      let csvContent = '\uFEFF';
+      csvContent += `${selectedPresetKey}-inch Quartz Crucible Lift & Residual Melt Report\n`;
+      csvContent += `Crucible Preset,${selectedPresetKey} inch\n`;
+      csvContent += `Crucible Dimensions,OD:${crucibleConfig.od}mm, ID:${crucibleConfig.id}mm, R1:${crucibleConfig.R1}mm, R2:${crucibleConfig.R2}mm, H:${crucibleConfig.height_out}mm, t:${crucibleConfig.bottom_t}mm\n`;
+      csvContent += `Initial Charge (kg),${initCharge}\n`;
+      csvContent += `Ingot Nominal Diameter (mm),${appState.ingotDia}\n`;
+      csvContent += `Diameter Offset (mm),${appState.diaOffset},Effective Target Diameter (mm),${effDia}\n`;
+      csvContent += `Body Linear Density (kg/mm),${kgPerMm.toFixed(4)}\n`;
+      csvContent += `Crown Weight (kg),${crownWt.toFixed(2)},Tail Weight (kg),${tailWt.toFixed(2)},Remain Weight (kg),${calc.remainWt.toFixed(2)}\n`;
+      csvContent += `Tail Trigger Weight (Growing kg),${calc.tailTriggerWtGrowing.toFixed(2)},Target Body Length (mm),${Math.round(calc.targetBodyLength)}\n\n`;
+
+      csvContent += 'Body Length (mm),Lift Ratio (CL/SL),Crucible Zone,Body Weight (kg),Total Ingot Grown (kg),Residual Melt (kg),Residual Radius (mm),Crucible Lift CL (mm)\n';
+
+      let currentL = 0;
+      while (currentL <= maxL + 1) {
+        const pullLen = Math.min(currentL, maxL);
+        const bodyWeight = pullLen * kgPerMm;
+        const totalGrown = crownWt + bodyWeight;
+        const meltWt = Math.max(0, initCharge - totalGrown);
+        const volL = meltWt / rhoL;
+        const z = getZFromVolume(volL);
+        const radius = getInnerRadius(z);
+        const cl = Math.max(0, z0 - z);
+
+        const A_crucible = Math.PI * Math.pow(radius, 2);
+        const A_ingot = Math.PI * Math.pow(effDia / 2, 2);
+        const ratio = A_crucible > 0 ? (A_ingot * rhoS) / (A_crucible * rhoL) : 0;
+
+        let zone = 'Cylinder';
+        if (z < z_t1) zone = 'R1 Bottom';
+        else if (z < z_t2) zone = 'R2 Corner';
+
+        csvContent += `${Math.round(pullLen)},${ratio.toFixed(4)},${zone},${bodyWeight.toFixed(2)},${totalGrown.toFixed(2)},${meltWt.toFixed(2)},${radius.toFixed(2)},${cl.toFixed(2)}\n`;
+
+        if (currentL >= maxL) break;
+        currentL += step;
+        if (currentL > maxL && currentL - step < maxL) {
+          currentL = maxL;
+        }
+      }
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${selectedPresetKey}inch_Crucible_Lift_Dia${effDia}mm_${initCharge}kg.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    /**
+     * Apply Crucible Preset
+     */
+    function applyCruciblePreset(presetKey) {
+      if (!CRUCIBLE_PRESETS[presetKey]) return;
+      selectedPresetKey = presetKey;
+      const p = CRUCIBLE_PRESETS[presetKey];
+
+      crucibleConfig.od = p.od;
+      crucibleConfig.id = p.id;
+      crucibleConfig.R1 = p.R1;
+      crucibleConfig.R2 = p.R2;
+      crucibleConfig.height_out = p.height_out;
+      crucibleConfig.bottom_t = p.bottom_t;
+      crucibleConfig.corner_t = p.corner_t;
+
+      inputCrucibleOD.value = p.od;
+      inputCrucibleID.value = p.id;
+      inputCrucibleR1.value = p.R1;
+      inputCrucibleR2.value = p.R2;
+      inputCrucibleH.value = p.height_out;
+      inputCrucibleBotT.value = p.bottom_t;
+
+      const dispLabel = document.getElementById('dispCurrentPresetLabel');
+      if (dispLabel) dispLabel.textContent = `규격: ${presetKey}"`;
+
+      // Update preset buttons styling
+      document.querySelectorAll('.btn-crucible-preset').forEach((b) => {
+        if (b.dataset.preset === presetKey) {
+          b.className = 'btn-crucible-preset py-2 text-xs font-mono font-extrabold rounded-xl border border-orange-500 bg-orange-500/25 text-orange-300 shadow-md shadow-orange-500/20 transition active:scale-95';
+        } else {
+          b.className = 'btn-crucible-preset py-2 text-xs font-mono font-bold rounded-xl border border-slate-700 bg-slate-800/90 hover:border-orange-500 transition active:scale-95 text-slate-300';
+        }
+      });
+
+      // Suggest appropriate default charge if current charge exceeds or differs significantly
+      if (p.defaultCharge) {
+        appState.initialCharge = p.defaultCharge;
+        inputInitialCharge.value = p.defaultCharge;
+        inputInitialChargeNum.value = p.defaultCharge;
+      }
+
+      recomputeGeometry();
+      updateUI();
+    }
+
+    /**
+     * Event Listeners Bindings
+     */
+    function setupEvents() {
+      // Crucible Size Preset Buttons
+      document.querySelectorAll('.btn-crucible-preset').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          applyCruciblePreset(btn.dataset.preset);
+        });
+      });
+
+      // Sliders & Number inputs sync
+      inputInitialCharge.addEventListener('input', (e) => {
+        appState.initialCharge = parseFloat(e.target.value);
+        updateUI();
+      });
+      inputInitialChargeNum.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val) && val > 0) {
+          appState.initialCharge = val;
+          updateUI();
+        }
+      });
+
+      // Ingot Dia Direct Input
+      inputIngotDia.addEventListener('input', (e) => {
+        const raw = e.target.value.trim();
+        if (raw === '' || raw === '.' || raw === '-') return;
+        const val = parseFloat(raw);
+        // Only update full state when value is in a practical, safe physical range
+        if (!isNaN(val) && val >= 50 && val <= 800) {
+          appState.ingotDia = val;
+          updateUI();
+        }
+      });
+
+      inputIngotDia.addEventListener('blur', (e) => {
+        const raw = e.target.value.trim();
+        const val = parseFloat(raw);
+        if (isNaN(val) || val < 50) {
+          e.target.value = appState.ingotDia;
+        } else {
+          appState.ingotDia = Math.min(800, Math.max(50, val));
+          e.target.value = appState.ingotDia;
+          updateUI();
+        }
+      });
+
+      inputLiquidDensity.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val) && val > 0) {
+          appState.liquidDensity = val;
+          updateUI();
+        }
+      });
+
+      inputSolidDensity.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val) && val > 0) {
+          appState.solidDensity = val;
+          updateUI();
+        }
+      });
+
+      // Cone Angle & Weight event listeners
+      chkAutoCones.addEventListener('change', (e) => {
+        appState.autoCones = e.target.checked;
+        inputCrownWeight.disabled = appState.autoCones;
+        inputTailWeight.disabled = appState.autoCones;
+        updateUI();
+      });
+
+      // Offset input (+5 ~ +7)
+      if (inputDiaOffset) {
+        inputDiaOffset.addEventListener('input', (e) => {
+          const raw = e.target.value.trim();
+          if (raw === '' || raw === '-' || raw === '.') return;
+          const val = parseFloat(raw);
+          if (!isNaN(val) && val >= 0) {
+            appState.diaOffset = val;
+            updateOffsetPresets(val);
+            updateUI();
+          }
+        });
+        inputDiaOffset.addEventListener('blur', (e) => {
+          if (e.target.value.trim() === '' || isNaN(parseFloat(e.target.value))) {
+            e.target.value = appState.diaOffset;
+          }
+        });
+      }
+
+      function updateOffsetPresets(val) {
+        document.querySelectorAll('.btn-offset-preset').forEach((b) => {
+          if (parseFloat(b.dataset.val) === val) {
+            b.className = 'btn-offset-preset px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-mono font-bold';
+          } else {
+            b.className = 'btn-offset-preset px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 text-[10px] font-mono hover:border-cyan-400';
+          }
+        });
+      }
+
+      document.querySelectorAll('.btn-offset-preset').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const val = parseFloat(btn.dataset.val);
+          appState.diaOffset = val;
+          inputDiaOffset.value = val.toFixed(1);
+          updateOffsetPresets(val);
+          updateUI();
+        });
+      });
+
+      inputCrownAngle.addEventListener('input', (e) => {
+        const raw = e.target.value.trim();
+        if (raw === '' || raw === '-' || raw === '.') return;
+        const val = parseFloat(raw);
+        if (!isNaN(val) && val > 5 && val < 85) {
+          appState.crownAngle = val;
+          updateUI();
+        }
+      });
+      inputCrownAngle.addEventListener('blur', (e) => {
+        if (e.target.value.trim() === '' || isNaN(parseFloat(e.target.value))) {
+          e.target.value = appState.crownAngle;
+        }
+      });
+
+      inputTailAngle.addEventListener('input', (e) => {
+        const raw = e.target.value.trim();
+        if (raw === '' || raw === '-' || raw === '.') return;
+        const val = parseFloat(raw);
+        if (!isNaN(val) && val > 5 && val < 85) {
+          appState.tailAngle = val;
+          updateUI();
+        }
+      });
+      inputTailAngle.addEventListener('blur', (e) => {
+        if (e.target.value.trim() === '' || isNaN(parseFloat(e.target.value))) {
+          e.target.value = appState.tailAngle;
+        }
+      });
+
+      inputCrownWeight.addEventListener('input', (e) => {
+        if (!appState.autoCones) {
+          const val = parseFloat(e.target.value);
+          if (!isNaN(val) && val >= 0) {
+            appState.crownWeight = val;
+            updateUI();
+          }
+        }
+      });
+
+      inputTailWeight.addEventListener('input', (e) => {
+        if (!appState.autoCones) {
+          const val = parseFloat(e.target.value);
+          if (!isNaN(val) && val >= 0) {
+            appState.tailWeight = val;
+            updateUI();
+          }
+        }
+      });
+
+      // Remain Weight Event Listener
+      if (inputRemainWeight) {
+        inputRemainWeight.addEventListener('input', (e) => {
+          const raw = e.target.value.trim();
+          if (raw === '' || raw === '-' || raw === '.') return;
+          const val = parseFloat(raw);
+          if (!isNaN(val) && val >= 0) {
+            appState.remainWeight = val;
+            updateRemainPresets(val);
+            updateUI();
+          }
+        });
+        inputRemainWeight.addEventListener('blur', (e) => {
+          if (e.target.value.trim() === '' || isNaN(parseFloat(e.target.value))) {
+            e.target.value = appState.remainWeight.toFixed(1);
+          }
+        });
+      }
+
+      function updateRemainPresets(val) {
+        document.querySelectorAll('.btn-remain-preset').forEach((b) => {
+          if (parseFloat(b.dataset.val) === val) {
+            b.className = 'btn-remain-preset px-1.5 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/50 text-[10px] font-mono font-bold';
+          } else {
+            b.className = 'btn-remain-preset px-1.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-mono hover:border-indigo-400';
+          }
+        });
+      }
+
+      document.querySelectorAll('.btn-remain-preset').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const val = parseFloat(btn.dataset.val);
+          appState.remainWeight = val;
+          inputRemainWeight.value = val.toFixed(1);
+          updateRemainPresets(val);
+          updateUI();
+        });
+      });
+
+      // Mode switching
+      tabIngotMode.addEventListener('click', () => {
+        appState.mode = 'ingot';
+        tabIngotMode.className = 'flex-1 py-1.5 rounded-lg bg-orange-600 text-white font-semibold transition';
+        tabMeltMode.className = 'flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
+        modeIngotContainer.classList.remove('hidden');
+        modeMeltContainer.classList.add('hidden');
+        updateUI();
+      });
+
+      tabMeltMode.addEventListener('click', () => {
+        appState.mode = 'melt';
+        tabMeltMode.className = 'flex-1 py-1.5 rounded-lg bg-orange-600 text-white font-semibold transition';
+        tabIngotMode.className = 'flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition';
+        modeMeltContainer.classList.remove('hidden');
+        modeIngotContainer.classList.add('hidden');
+        updateUI();
+      });
+
+      sliderIngotLen.addEventListener('input', (e) => {
+        appState.mode = 'ingot';
+        appState.currentIngotLen = parseFloat(e.target.value);
+        updateUI();
+      });
+
+      sliderMeltWeight.addEventListener('input', (e) => {
+        appState.mode = 'melt';
+        appState.currentMeltWeight = parseFloat(e.target.value);
+        updateUI();
+      });
+
+      selectStepInterval.addEventListener('change', () => {
+        updateUI();
+      });
+
+      btnExportCSV.addEventListener('click', exportToCSV);
+
+      // Crucible Geometry inputs
+      function bindGeomInput(inputElem, key) {
+        inputElem.addEventListener('input', (e) => {
+          const raw = e.target.value.trim();
+          if (raw === '' || raw === '-' || raw === '.') return;
+          const val = parseFloat(raw);
+          if (!isNaN(val) && val > 0) {
+            crucibleConfig[key] = val;
+            const dispLabel = document.getElementById('dispCurrentPresetLabel');
+            if (dispLabel) dispLabel.textContent = `규격: 직접수정`;
+            recomputeGeometry();
+            updateUI();
+          }
+        });
+        inputElem.addEventListener('blur', (e) => {
+          if (e.target.value.trim() === '' || isNaN(parseFloat(e.target.value))) {
+            e.target.value = crucibleConfig[key];
+          }
+        });
+      }
+
+      bindGeomInput(inputCrucibleOD, 'od');
+      bindGeomInput(inputCrucibleID, 'id');
+      bindGeomInput(inputCrucibleR1, 'R1');
+      bindGeomInput(inputCrucibleR2, 'R2');
+      bindGeomInput(inputCrucibleH, 'height_out');
+      bindGeomInput(inputCrucibleBotT, 'bottom_t');
+
+      // View Mode Toggle (실제비율 전체 vs 도가니 중심)
+      const btnViewProportional = document.getElementById('btnViewProportional');
+      const btnViewFocused = document.getElementById('btnViewFocused');
+      const dispScaleRatio = document.getElementById('dispScaleRatio');
+
+      if (btnViewProportional && btnViewFocused) {
+        btnViewProportional.addEventListener('click', () => {
+          appState.canvasViewMode = 'proportional';
+          btnViewProportional.className = 'px-2 py-0.5 rounded text-xs transition bg-orange-600 text-white font-bold';
+          btnViewFocused.className = 'px-2 py-0.5 rounded text-xs transition text-slate-400 hover:text-white';
+          if (dispScaleRatio) dispScaleRatio.textContent = '도가니 & 잉곳 길이 1:1 완전 비례';
+          const calc = calculateState();
+          drawCrucible(calc);
+        });
+
+        btnViewFocused.addEventListener('click', () => {
+          appState.canvasViewMode = 'focused';
+          btnViewFocused.className = 'px-2 py-0.5 rounded text-xs transition bg-orange-600 text-white font-bold';
+          btnViewProportional.className = 'px-2 py-0.5 rounded text-xs transition text-slate-400 hover:text-white';
+          if (dispScaleRatio) dispScaleRatio.textContent = '도가니 확대 뷰 (바디 상단 파단선)';
+          const calc = calculateState();
+          drawCrucible(calc);
+        });
+      }
+
+      // Click to select all for fast typing replacement
+      [inputCrucibleOD, inputCrucibleID, inputCrucibleR1, inputCrucibleR2, inputCrucibleH, inputCrucibleBotT, inputIngotDia, inputDiaOffset, inputRemainWeight, inputInitialChargeNum, inputLiquidDensity, inputSolidDensity, inputCrownAngle, inputCrownWeight, inputTailAngle, inputTailWeight].forEach((input) => {
+        if (input) {
+          input.addEventListener('focus', function() {
+            this.select();
+          });
+        }
+      });
+
+      btnResetDefault.addEventListener('click', () => {
+        applyCruciblePreset('32');
+      });
+
+      window.addEventListener('resize', () => {
+        const calc = calculateState();
+        drawCrucible(calc);
+      });
+    }
+
+    // App Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      applyCruciblePreset('32');
+      setupEvents();
+      updateUI();
+    });
+  </script>
+</body>
+</html>
